@@ -1,0 +1,53 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <title></title>
+		<link href="style.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript" src="jquery-1.4.4.min.js"></script>
+		<script type="text/javascript" src="jquery.tmpl.min.js"></script>
+        <script type="text/javascript" src="FullscreenImageViewer.js"></script>
+        <script type="text/javascript" src="DirectoryParserS3.js"></script>
+        <script type="text/javascript">
+            jQuery(function($) {
+                var url = '/';
+                var queryString = window.location.search.substring(0);
+                if (queryString.length>0 && queryString.charAt(0)=='?') {
+                        queryString.substring(1).split('&').forEach(function(val) {
+                                var kvp = val.split('=');
+                                if (kvp[0]==='path') {
+                                        url = kvp[1]; 
+                                }
+                        });
+                }
+                
+                
+                viewer = new djiaak.FullscreenImageViewer({
+                    mainImageTag: $("#main-image"),
+					browserTag: $("#browser"),
+					browserTemplate: $("#browser-template"),
+					nextImageTag: $(".change-image-next"),
+					prevImageTag: $(".change-image-prev"),
+					imageTags: [$("#main-image-0"), $("#main-image-1")],
+                    url: url,
+					browserHighlightTag: $("#browser-highlight")
+                });
+				viewer.init();
+            });
+        </script>
+		<script id="browser-template" type="text/x-jquery-tmpl">
+			<span class="browser-image-container" data-index="${index}">
+				<img class="browser-image" src="${browserSrc}" style="width: ${browserWidth}px; height: ${browserHeight}px" />
+			</span>
+		</script>
+    </head>
+    <body>
+        <div>
+            <img class="main-image" id="main-image-0" />
+			<img class="main-image" id="main-image-1" style="display:none" />
+			<div class="change-image change-image-next">&gt;</div>
+			<div class="change-image change-image-prev">&lt;</div>
+			<div id="browser"></div>
+			<span id="browser-highlight" style="display:none"></div>
+        </div>
+    </body>
+</html>
