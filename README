@@ -1,0 +1,3 @@
+Image gallery for Amazon S3. Just an HTML page and some Javascript that reads the content of a public Amazon bucket and displays all the images it finds in a gallery. Image thumbnails are defined by adding a ".thumbnail.{width}x{height}." prefix to the image filename. If an image thumbnail doesn't exist it is generated and uploaded to S3 once the full image has been downloaded (on the client browser of course).
+
+Project's not quite ready for use yet. Still needs a lot of work.
