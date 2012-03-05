@@ -12,20 +12,38 @@
             nextImageTag: null,
             prevImageTag: null,
             url: '/',
-            thumbnailWidth: 64,
-            thumbnailHeight: 64,
             imageTags: [],
             browserHighlightTag: null,
-            imageViewMode: djiaak.ImageViewModes.original
+            imageViewMode: djiaak.ImageViewModes.original,
+            directoryParser: null,
+            fileDirMatcher: null,
+            thumbnailGenerator: null,
+            fileUploader: null
         },
         config || {});
 
-        var _images,
-        _other;
+        var _images, _other, _thumbnails;
         var _currentImageIndex = -1;
         var _preloadCount = 1;
-        var _thumbnailSuffix = ".thumb_" + _config.thumbnailWidth + 'x' + _config.thumbnailHeight + '.jpg';
         var _currentImage;
+
+				var _elementInViewport = function(el) {
+					var top = el.offsetTop;
+					var left = el.offsetLeft;
+					var width = el.offsetWidth;
+					var height = el.offsetHeight;
+		
+					while(el.offsetParent) {
+						el = el.offsetParent;
+						top += el.offsetTop;
+						left += el.offsetLeft;
+					}
+		
+					return (top < (window.pageYOffset + window.innerHeight) &&
+							left < (window.pageXOffset + window.innerWidth) &&
+							(top + height) > window.pageYOffset &&
+							(left + width) > window.pageXOffset);
+				};
 
         var _handleResize = function() {
             _config.browserTag.css('left', ($(window).width() - _config.browserTag.outerWidth()) / 2);
@@ -33,24 +51,10 @@
             _scaleImage();
         };
 
-        var _getImageType = function(fileName) {
-            var src = fileName.toLowerCase();
-            if (src.match(/\.jpg$/) || src.match(/\.jpeg$/)) {
-                return 'jpg';
-            } else if (src.match(/\.gif$/)) {
-                return 'gif';
-            } else if (src.match(/\.png$/)) {
-                return 'png';
-            }
-            return null;
-        };
-
         var _setCurrentImageIndex = function(index) {
             _currentImageIndex = index;
             _loadCurrentImage();
         };
-
-
 
         var SCALE_IMAGE_RETRY_MAX = 10;
         var _scaleImageRetryCurrent = 0;
@@ -112,7 +116,37 @@
                 500);
             }
         };
+        
+        var _getThumbnail = function(src) {
+        	var thumbnailSrc = _config.thumbnailGenerator.generateThumbnailFilename(src);
+        	for (var i=0; i<_thumbnails.length; i++) {
+        		if (_thumbnails[i].fullSrc === thumbnailSrc) return _thumbnails[i];
+        	}
+        	return null;
+        };
+        
+        //check which thumbnails have become visible, and load or generate them
+        var _thumbnailsScroll = function() {
+        	var $currentTag = _config.browserTag.find('.browser-image-container:first');
+        	var index = parseInt($currentTag.data('index'), 10);
+        	var item = _images[index];
+        	var thumbnail = _getThumbnail(item.fullSrc);
+        	if (thumbnail) {
+        		$currentTag.find('.browser-image').attr('src', thumbnail.fullSrc);
+        	} else {
+        		var img = new Image();
+        		img.src = item.fullSrc;
+        		_config.thumbnailGenerator.generateThumbnailAsync(img, function(result) {
+        			_config.fileUploader.upload(result, _config.thumbnailGenerator.generateThumbnailFilename(item.key), function() {
+        				//success
+        			}, function() {
+        				//failure
+        			});
+        		});
+        	}
+        };
 
+				//all items have been loaded, so bind html containers
         var _bindTemplates = function() {
             $.template(_config.browserTemplate.attr('id'), _config.browserTemplate);
             $.tmpl(_config.browserTemplate.attr('id'), _images).appendTo(_config.browserTag);
@@ -123,30 +157,43 @@
                 _setCurrentImageIndex(index);
             });
             _config.browserTag.append(_config.browserHighlightTag);
-
+						
+						_thumbnailsScroll();
+        };
+        
+        var _generateItem = function(input, index) {
+       		return {
+       			key: input.key,
+        		path: window.location.pathname + '?path=' + input.src,
+        		fullSrc: input.src,
+        		browserWidth: _config.thumbnailGenerator.getWidth(),
+        		browserHeight: _config.thumbnailGenerator.getHeight(),
+        		index: index
+        	};
+        	
         };
 
         var _parseDirectory = function(callback) {
-            var parser = new djiaak.DirectoryParserS3();
-            parser.parseDirectoryFromUrl(_config.url, '/',
+            _config.directoryParser.parseDirectoryFromUrl('/',
             function(result) {
+							var items =	_config.fileDirMatcher.match(result, _config.url);
                 _images = [];
                 _other = [];
-                var imageIndex = 0;
-                for (var i = 0; i < result.length; i++) {
-                    result[i].path = window.location.pathname + '?path=' + result[i].src;
-                    result[i].browserSrc = result[i].src;
-                    result[i].fullSrc = result[i].src;
-                    result[i].browserWidth = _config.thumbnailWidth;
-                    result[i].browserHeight = _config.thumbnailHeight;
-                    var type = _getImageType(result[i].src);
-                    if (type) {
-                        result[i].index = imageIndex++;
-                        _images.push(result[i]);
-                    } else {
-                        _other.push(result[i]);
-                    }
-                }
+                _thumbnails = [];
+                var fileIndex = 0;
+               	for (var i= 0; i<items.files.length; i++) {
+               		var file = items.files[i];
+               		if (_config.thumbnailGenerator.isThumbnail(file.src)) {
+               			_thumbnails.push(_generateItem(file, 0));
+               		} else {
+	               		_images.push(_generateItem(file, fileIndex++));
+               		}
+               	}
+               	for (var i= 0; i<items.dirs.length; i++) {
+               		_other.push(_generateItem(items.dirs[i], i));
+               	}
+               	
+                
                 if (callback) callback();
             });
         };
