@@ -1,5 +1,10 @@
 (function(djiaak, $, undefined) {
-	//parses an xml bucket listing. returns all files
+		//parses an xml bucket listing. returns all files
+
+		//caching stuff
+		var _lastBaseUrl;
+		var _lastResults;
+		
     djiaak.S3DirectoryParser = function() {
         var _isUrlMatch = function(url) {
        		return url.charAt(url.length-1)!=='/';
@@ -18,14 +23,19 @@
                     });
                 }
             });
-               
+            _lastBaseUrl = baseUrl;
+            _lastResults = toReturn;
             return toReturn;
         }
 	
         var _parseDirectoryFromUrl = function(baseUrl, callback) {
-            $.get(baseUrl, null, function(result) {
-                callback(_parseDirectoryListing(result, baseUrl));
-            }, 'xml');
+        		if (_lastBaseUrl === baseUrl) {
+        			callback(_lastResults);
+        		} else {
+		          $.get(baseUrl, null, function(result) {
+		              callback(_parseDirectoryListing(result, baseUrl));
+		          }, 'xml');
+            }
         };
 	
         return {

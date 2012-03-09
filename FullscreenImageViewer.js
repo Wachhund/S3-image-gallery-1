@@ -9,6 +9,8 @@
             mainImageTag: null,
             browserTag: null,
             browserTemplate: null,
+            folderBrowserTag: null,
+            folderBrowserTemplate: null,
             nextImageTag: null,
             prevImageTag: null,
             url: '/',
@@ -22,10 +24,11 @@
         },
         config || {});
 
-        var _images, _other, _thumbnails;
+        var _images, _folders, _thumbnails;
         var _currentImageIndex = -1;
         var _preloadCount = 1;
         var _currentImage;
+        var _uploadQueue = djiaak.AsyncQueue();
 
 				var _elementInViewport = function(el) {
 					var top = el.offsetTop;
@@ -125,32 +128,63 @@
         	return null;
         };
         
-        //check which thumbnails have become visible, and load or generate them
+        var _getFolderThumbnail = function(src) {
+        	
+        };
+                
+        //check which thumbnails (folders & items) have become visible, and load or generate them
         var _thumbnailsScroll = function() {
-        	var $currentTag = _config.browserTag.find('.browser-image-container:first');
-        	var index = parseInt($currentTag.data('index'), 10);
-        	var item = _images[index];
-        	var thumbnail = _getThumbnail(item.fullSrc);
-        	if (thumbnail) {
-        		$currentTag.find('.browser-image').attr('src', thumbnail.fullSrc);
-        	} else {
-        		var img = new Image();
-        		img.src = item.fullSrc;
-        		_config.thumbnailGenerator.generateThumbnailAsync(img, function(result) {
-        			_config.fileUploader.upload(result, _config.thumbnailGenerator.generateThumbnailFilename(item.key), function() {
-        				//success
-        			}, function() {
-        				//failure
-        			});
-        		});
-        	}
+        	var $tags;
+        	
+        	$tags = _config.folderBrowserTag.find('.browser-image-container');
+        	$tags.each(function() {
+        		var $currentTag = $(this);
+        		if (!$currentTag.find('.browser-image').attr('src') && _elementInViewport(this)) {
+	        		var index = parseInt($currentTag.data('index'), 10);
+				    	var item = _folders[index];
+				    	var thumbnail = _getFolderThumbnail(item.fullSrc);
+        		}
+        	});
+        
+	       	$tags = _config.browserTag.find('.browser-image-container');
+        	$tags.each(function() {
+        		var $currentTag = $(this);
+        		if (!$currentTag.find('.browser-image').attr('src') && _elementInViewport(this)) {
+        			var index = parseInt($currentTag.data('index'), 10);
+				    	var item = _images[index];
+				    	var thumbnail = _getThumbnail(item.fullSrc);
+				    	if (thumbnail) {
+				    		$currentTag.find('.browser-image').attr('src', thumbnail.fullSrc);
+				    	} else {
+				    		var func = (function(item) { return function() {
+				    			var img = new Image();
+				    			img.src = item.fullSrc;
+					    		_config.thumbnailGenerator.generateThumbnailAsync(img, function(result) {
+				    				_config.fileUploader.upload(result, _config.thumbnailGenerator.generateThumbnailFilename(item.key), function() {
+				    				//success
+				    				_uploadQueue.funcCompleted();
+					    			}, function() {
+				    				//failure
+				    				_uploadQueue.funcCompleted();
+					    			});
+					    		});		
+				    		}})(item);
+				    		_uploadQueue.add(func);
+				    	}
+        		}
+        	});
+
+
         };
 
 				//all items have been loaded, so bind html containers
         var _bindTemplates = function() {
             $.template(_config.browserTemplate.attr('id'), _config.browserTemplate);
             $.tmpl(_config.browserTemplate.attr('id'), _images).appendTo(_config.browserTag);
-            _config.browserTag.css('height', _config.thumbnailHeight + 20);
+            
+            $.template(_config.folderBrowserTemplate.attr('id'), _config.folderBrowserTemplate);
+            $.tmpl(_config.folderBrowserTemplate.attr('id'), _folders).appendTo(_config.folderBrowserTag);
+            //_config.browserTag.css('height', _config.thumbnailHeight + 20);
 
             _config.browserTag.find('.browser-image').click(function() {
                 var index = parseInt($(this).closest('.browser-image-container').data("index"), 10);
@@ -178,7 +212,7 @@
             function(result) {
 							var items =	_config.fileDirMatcher.match(result, _config.url);
                 _images = [];
-                _other = [];
+                _folders = [];
                 _thumbnails = [];
                 var fileIndex = 0;
                	for (var i= 0; i<items.files.length; i++) {
@@ -190,7 +224,7 @@
                		}
                	}
                	for (var i= 0; i<items.dirs.length; i++) {
-               		_other.push(_generateItem(items.dirs[i], i));
+               		_folders.push(_generateItem(items.dirs[i], i));
                	}
                	
                 
