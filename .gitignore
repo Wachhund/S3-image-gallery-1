@@ -1,4 +1,5 @@
 .DS_Store
 .svn
-S3Settings.js
+/S3Settings.js
 *.class
+/deploy.sh

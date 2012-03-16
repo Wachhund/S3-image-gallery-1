@@ -8,7 +8,7 @@
         canvas.height = newHeight;
         var ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, newWidth, newHeight);
-        return _dataURItoBlob(canvas.toDataURL("image/png"));
+        return _dataURItoBlob(canvas.toDataURL("image/jpg"));
     };
   
   

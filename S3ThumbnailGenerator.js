@@ -7,11 +7,18 @@
 		var _imageResizer = djiaak.ImageResizer();
 	
 		var _isThumbnail = function(filename) {
-			return djiaak.FileUtils.getFilename(filename).indexOf(_pathPrefix)===0;
+			return filename.indexOf(_pathPrefix)===0;
 		};
 		
-		var _generateThumbnailFilename = function(filename) {
-			return _pathPrefix + filename + "." + width + "x" + height + "." + ".jpg";
+		var _thumbnailToFilename = function(thumbnailFilename) {
+			if (_isThumbnail(thumbnailFilename)) {
+				return thumbnailFilename.substr(_pathPrefix.length);
+			}
+			return null;
+		};
+		
+		var _filenameToThumbnail = function(filename) {
+			return _pathPrefix + filename + "." + width + "x" + height + ".jpg";
 		};
 		
 		var _generateThumbnail = function(img) {
@@ -30,7 +37,8 @@
 		
 		return {
 			generateThumbnailAsync: _generateThumbnailAsync,
-			generateThumbnailFilename: _generateThumbnailFilename,
+			generateThumbnailFilename: _filenameToThumbnail,
+			getThumbnailFilename: _thumbnailToFilename,
 			isThumbnail: _isThumbnail,
 			getWidth: function() { return _width; },
 			getHeight: function() { return _height; }

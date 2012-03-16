@@ -13,7 +13,7 @@
     <script type="text/javascript" src="S3ThumbnailGenerator.js"></script>
     <script type="text/javascript" src="S3Uploader.js"></script>
     <script type="text/javascript" src="FileUtils.js"></script>
-    <script type="text/javascript" src="UploadQueue.js"></script>
+    <script type="text/javascript" src="AsyncQueue.js"></script>
     <script type="text/javascript">
             jQuery(function($) {
                 var url = '/';
@@ -27,7 +27,7 @@
                         });
                 }
                 
-                
+                var thumbnailGenerator = djiaak.S3ThumbnailGenerator(64,64, djiaak.settings.thumbnailPath);
                 viewer = new djiaak.FullscreenImageViewer({
                     mainImageTag: $("#main-image"),
 					browserTag: $("#img-browser"),
@@ -40,8 +40,8 @@
                     url: url,
 					browserHighlightTag: $("#browser-highlight"),
 					directoryParser: djiaak.S3DirectoryParser(),
-					fileDirMatcher: djiaak.S3FileDirMatcher(),
-					thumbnailGenerator: djiaak.S3ThumbnailGenerator(64,64, djiaak.settings.thumbnailPath),
+					fileDirMatcher: djiaak.S3FileDirMatcher(null, thumbnailGenerator),
+					thumbnailGenerator: thumbnailGenerator,
 					fileUploader: djiaak.S3Uploader(djiaak.settings.s3)
                 });
 				viewer.init();

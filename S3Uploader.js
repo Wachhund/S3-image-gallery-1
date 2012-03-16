@@ -13,13 +13,13 @@
 
         //req.addEventListener("progress", updateProgress, false);  
         xhr.addEventListener("load", function(e) {
-            alert('uploaded' + e.responseText);
+            success();
         }, false);  
         xhr.addEventListener("error", function(e) {
-            alert('failed: ' + e.responseText);
+            failure();
         }, false);  
         xhr.addEventListener("abort", function(e) {
-            alert('aborted'  + e.responseText);
+            failure();
         }, false);
 
         xhr.open("POST", "https://dj-public.s3.amazonaws.com/");

@@ -27,12 +27,12 @@
 		};
 		
 		var _start = function() {
-			_currentlyExecuting = true;
+			_isRunning = true;
 			_update();
 		};
 		
 		var _stop = function() {
-			_currentlyExecuting = false;
+			_isRunning = false;
 			_update();
 		};
 		

@@ -120,10 +120,10 @@
             }
         };
         
-        var _getThumbnail = function(src) {
-        	var thumbnailSrc = _config.thumbnailGenerator.generateThumbnailFilename(src);
+        var _getThumbnail = function(key) {
+        	var thumbnailKey = _config.thumbnailGenerator.generateThumbnailFilename(key);
         	for (var i=0; i<_thumbnails.length; i++) {
-        		if (_thumbnails[i].fullSrc === thumbnailSrc) return _thumbnails[i];
+        		if (_thumbnails[i].key === thumbnailKey) return _thumbnails[i];
         	}
         	return null;
         };
@@ -134,25 +134,30 @@
                 
         //check which thumbnails (folders & items) have become visible, and load or generate them
         var _thumbnailsScroll = function() {
+        	_uploadQueue.stop();
+        	_uploadQueue.clear();
+        
         	var $tags;
         	
         	$tags = _config.folderBrowserTag.find('.browser-image-container');
         	$tags.each(function() {
         		var $currentTag = $(this);
-        		if (!$currentTag.find('.browser-image').attr('src') && _elementInViewport(this)) {
+        		var $browserImage = $currentTag.find('.browser-image');
+        		if (!$browserImage.attr('src') && _elementInViewport($browserImage[0])) {
 	        		var index = parseInt($currentTag.data('index'), 10);
 				    	var item = _folders[index];
-				    	var thumbnail = _getFolderThumbnail(item.fullSrc);
+				    	var thumbnail = _getFolderThumbnail(item.key);
         		}
         	});
         
 	       	$tags = _config.browserTag.find('.browser-image-container');
         	$tags.each(function() {
         		var $currentTag = $(this);
-        		if (!$currentTag.find('.browser-image').attr('src') && _elementInViewport(this)) {
+        		var $browserImage = $currentTag.find('.browser-image');
+        		if (!$browserImage.attr('src') && _elementInViewport($browserImage[0])) {
         			var index = parseInt($currentTag.data('index'), 10);
 				    	var item = _images[index];
-				    	var thumbnail = _getThumbnail(item.fullSrc);
+				    	var thumbnail = _getThumbnail(item.key);
 				    	if (thumbnail) {
 				    		$currentTag.find('.browser-image').attr('src', thumbnail.fullSrc);
 				    	} else {
@@ -173,7 +178,7 @@
 				    	}
         		}
         	});
-
+					_uploadQueue.start();
 
         };
 
@@ -216,17 +221,14 @@
                 _thumbnails = [];
                 var fileIndex = 0;
                	for (var i= 0; i<items.files.length; i++) {
-               		var file = items.files[i];
-               		if (_config.thumbnailGenerator.isThumbnail(file.src)) {
-               			_thumbnails.push(_generateItem(file, 0));
-               		} else {
-	               		_images.push(_generateItem(file, fileIndex++));
-               		}
+	               	_images.push(_generateItem(items.files[i], fileIndex++));
                	}
                	for (var i= 0; i<items.dirs.length; i++) {
                		_folders.push(_generateItem(items.dirs[i], i));
                	}
-               	
+               	for (var i= 0; i<items.thumbnails.length; i++) {
+               		_thumbnails.push(_generateItem(items.thumbnails[i], 0));
+               	}
                 
                 if (callback) callback();
             });
