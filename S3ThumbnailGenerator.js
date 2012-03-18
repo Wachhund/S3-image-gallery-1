@@ -21,6 +21,10 @@
 			return _pathPrefix + filename + "." + width + "x" + height + ".jpg";
 		};
 		
+		var _dirToThumbnailDir = function(dir) {
+			return _pathPrefix + dir;
+		};
+		
 		var _generateThumbnail = function(img) {
 			return _imageResizer.resizeImage(img, _width, _height);
 		};
@@ -37,7 +41,8 @@
 		
 		return {
 			generateThumbnailAsync: _generateThumbnailAsync,
-			generateThumbnailFilename: _filenameToThumbnail,
+			filenameToThumbnail: _filenameToThumbnail,
+			dirToThumbnailDir: _dirToThumbnailDir,
 			getThumbnailFilename: _thumbnailToFilename,
 			isThumbnail: _isThumbnail,
 			getWidth: function() { return _width; },

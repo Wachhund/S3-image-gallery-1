@@ -1,27 +1,78 @@
-#browser {
-	max-width:90%;
-	background-color:rgba(0,0,0,0.5);
-	position: fixed;
-	bottom:10px;
-	overflow: auto;
-	white-space: nowrap;
-	border-radius:5px;
-	padding:10px;
-	z-index:20;
-}
-.browser-image-container {
-	padding-left: 5px;
-	padding-right:5px;
-	z-index:40;
-}
-.main-image {
-	position: absolute;
-	top:0px;
-	left:0px;
-	z-index:10;
-}
-.change-image {
+body {
+	padding: 0;
+	margin: 0;
 	font-family: sans-serif;
+	color: white;
+}
+#main {
+	height: 100%;
+	width: 100%;
+	background-color: #FFF;
+}
+#main div {
+	overflow: auto;
+	
+}
+#browser {
+	border-right: 5px solid #aaa;
+	height: 100% !important;
+	background: none;
+}
+#image {
+	height: 100% !important;
+}
+.vsplitbar {
+	width: 5px;
+	background: #aaa;
+	height: 100% !important;
+}
+.thumbnails {
+	display: block !important;
+	line-height: auto !important;
+	height: auto !important;
+}
+.thumbnail {
+	display: inline-block;
+	margin:5px;
+	white-space: normal;
+	background-color: #F0F0F0;
+	background-image:url('throbber.gif');
+	background-repeat:no-repeat;
+	background-position:center; 
+}
+.no-icon {
+	display: none !important;
+	background: none !important;
+}
+.browser ul {
+	border-bottom: 1px solid #F0F0F0;
+	border-left: 1px solid #F0F0F0;
+	padding-right: 5px !important;
+}
+.browser>ul {
+	border: 0px;
+	padding: 5px !important;
+}
+.browser li {
+	padding-bottom: 5px !important;
+}
+.thumbnail-container {
+	white-space: normal;
+}
+.highlight {
+	position: absolute;
+	background-color: yellow;
+	border-radius:3px;
+	padding:6px;
+	z-index:-10;
+}
+.next-image {
+	right:0px;
+}
+.prev-image {
+	left:0px;
+}
+.control {
 	font-size: 32pt;
 	position: fixed;
 	background-color: rgba(0,0,0,0.5);
@@ -29,27 +80,6 @@
 	color:white;
 	cursor: pointer;
 	z-index:20;
-}
-.change-image-next {
-	right:0px;
-	border-top-left-radius:30px;
-	border-bottom-left-radius:30px;
-}
-.change-image-prev {
-	left:0px;
-	border-top-right-radius:30px;
-	border-bottom-right-radius:30px;
-}
-.center {
-	text-align: center;
-}
-.browser-image {
-	cursor: pointer;
-}
-#browser-highlight {
-	position: absolute;
-	background-color: rgba(255,255,255,0.5);
-	border-radius:3px;
-	padding:6px;
-	z-index:-10;
+	top:50%;
+	opacity:0.1;
 }

@@ -1,8 +1,16 @@
 (function(djiaak, $, undefined) {
 	djiaak.ImageResizer = function() {     
     var _resizeImage = function(img, targetWidth, targetHeight) {
-        var newWidth = targetWidth;
-        var newHeight = targetHeight;
+		var sourceAspect = img.width / img.height;
+		var targetAspect = targetWidth / targetHeight;
+        var newWidth, newHeight;
+		if (sourceAspect>targetAspect) {
+			newWidth = targetWidth;
+			newHeight = targetWidth / sourceAspect;
+		} else {
+			newWidth = targetHeight * sourceAspect;
+			newHeight = targetHeight;
+		}
         var canvas = document.createElement('canvas');
         canvas.width = newWidth;
         canvas.height = newHeight;
