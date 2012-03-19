@@ -1,24 +1,27 @@
 (function(djiaak, $, undefined) {
 	djiaak.ImageResizer = function() {     
     var _resizeImage = function(img, targetWidth, targetHeight) {
-		var sourceAspect = img.width / img.height;
-		var targetAspect = targetWidth / targetHeight;
-        var newWidth, newHeight;
-		if (sourceAspect>targetAspect) {
-			newWidth = targetWidth;
-			newHeight = targetWidth / sourceAspect;
-		} else {
-			newWidth = targetHeight * sourceAspect;
-			newHeight = targetHeight;
-		}
-        var canvas = document.createElement('canvas');
-        canvas.width = newWidth;
-        canvas.height = newHeight;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, newWidth, newHeight);
-        return _dataURItoBlob(canvas.toDataURL("image/jpg"));
+			var sourceAspect = img.width / img.height;
+			var targetAspect = targetWidth / targetHeight;
+		      var newWidth, newHeight;
+			if (sourceAspect>targetAspect) {
+				newWidth = targetWidth;
+				newHeight = targetWidth / sourceAspect;
+			} else {
+				newWidth = targetHeight * sourceAspect;
+				newHeight = targetHeight;
+			}
+      var canvas = document.createElement('canvas');
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
+      var dataUri = canvas.toDataURL("image/jpg");
+      return {
+      	blob: _dataURItoBlob(dataUri),
+      	dataUri: dataUri
+      };
     };
-  
   
     var _dataURItoBlob = function(dataURI) {
         // convert base64 to raw binary data held in a string

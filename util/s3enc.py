@@ -14,7 +14,7 @@ def generatepolicydocument(expiration, bucket, keyprefix, acl, contentlengthrang
 	]
 }}""".format(expiration, bucket, keyprefix, acl, contentlengthrangemax)
 
-def generatejson(accesskeyid, acl, policy, signature, thumbnailpath):
+def generatejson(accesskeyid, acl, policy, signature, thumbnailpath, url):
 	return """
 if (typeof djiaak === 'undefined') djiaak = {{}};
 djiaak.settings = {{
@@ -24,17 +24,18 @@ djiaak.settings = {{
 		'policy': '{2}',
 		'signature': '{3}'
 	}},
-	thumbnailPath: '{4}'
+	thumbnailPath: '{4}',
+	url: '{5}'
 }};
-""".format(accesskeyid, acl, policy, signature, thumbnailpath)
+""".format(accesskeyid, acl, policy, signature, thumbnailpath, url)
 
-if len(sys.argv) != 8:
-	sys.exit("invalid arguments. usage: s3enc.py [expiration] [bucket] [thumbnail path prefix] [acl] [content max size] [aws access key id] [aws secret key]")
+if len(sys.argv) != 9:
+	sys.exit("invalid arguments. usage: s3enc.py [expiration] [bucket] [thumbnail path prefix] [acl] [content max size] [aws access key id] [aws secret key] [aws url]")
 
 policy = base64.b64encode(generatepolicydocument(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4],sys.argv[5]))
 
 signature = base64.b64encode(
     hmac.new(sys.argv[7], policy, sha).digest())
     
-print(generatejson(sys.argv[6], sys.argv[4], policy, signature, sys.argv[3]))
+print(generatejson(sys.argv[6], sys.argv[4], policy, signature, sys.argv[3], sys.argv[8]))
 

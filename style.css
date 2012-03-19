@@ -20,6 +20,10 @@ body {
 }
 #image {
 	height: 100% !important;
+	background-image: url('login_bg.jpg');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: 50% 50%
 }
 .vsplitbar {
 	width: 5px;
@@ -67,19 +71,26 @@ body {
 	z-index:-10;
 }
 .next-image {
+	font-size: 32pt;
+	padding:15px;
 	right:0px;
+	top:40%;
 }
 .prev-image {
+	font-size: 32pt;
+	padding:15px;
 	left:0px;
+	top:40%;
+}
+.image-scale {
+	right: 0px;
+	top: 0px;
 }
 .control {
-	font-size: 32pt;
 	position: fixed;
 	background-color: rgba(0,0,0,0.5);
-	padding:15px;
 	color:white;
 	cursor: pointer;
 	z-index:20;
-	top:50%;
 	opacity:0.2;
 }
