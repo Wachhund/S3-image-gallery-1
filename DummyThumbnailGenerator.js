@@ -1,28 +1,23 @@
 (function(djiaak, $, undefined) {
-	djiaak.S3ThumbnailGenerator = function(width, height, pathPrefix, resizeFunc) {
+	djiaak.DummyThumbnailGenerator = function(width, height, resizeFunc) {
 		var _width = width;
 		var _height = height;
-		var _pathPrefix = pathPrefix;
-	
 		var _resizeFunc = resizeFunc;
 	
 		var _isThumbnail = function(filename) {
-			return filename.indexOf(_pathPrefix)===0;
+			return false;
 		};
 		
 		var _thumbnailToFilename = function(thumbnailFilename) {
-			if (_isThumbnail(thumbnailFilename)) {
-				return thumbnailFilename.substr(_pathPrefix.length);
-			}
 			return null;
 		};
 		
 		var _filenameToThumbnail = function(filename) {
-			return _pathPrefix + filename + "." + width + "x" + height + ".jpg";
+			return null;
 		};
 		
 		var _dirToThumbnailDir = function(dir) {
-			return _pathPrefix + dir;
+			return null;
 		};
 		
 		var _generateThumbnail = function(img) {

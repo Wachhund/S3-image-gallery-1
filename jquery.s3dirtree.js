@@ -80,9 +80,9 @@
 			var uploadQueue = djiaak.AsyncQueue();
 			var thumbnails=[];
 
-			var setElementThumbnail = function($el, thumbnailSrc) {
+			var setElementThumbnail = function($el, thumbnailSrc, url) {
 				$el.data('thumbnailSrc', thumbnailSrc)
-					.css('background-image', "url('/" + thumbnailSrc + "')");
+					.css('background-image', "url('" + url + "')");
 			};
 			
 			var thumbnailScroll = function() {
@@ -100,10 +100,10 @@
 									var img = new Image();
 									img.src = imageUrl;
 									settings.generateThumbnailFunc(img, function(result) {
-										settings.fileUploadFunc(result, thumbnailSrcToGenerate, function() {
+										setElementThumbnail($element, thumbnailSrcToGenerate, result.dataUri);
+										settings.fileUploadFunc(result.blob, thumbnailSrcToGenerate, function() {
 											//success
 											uploadQueue.funcCompleted();
-											setElementThumbnail($element, thumbnailSrcToGenerate);
 										}, function() {
 											//failure
 											uploadQueue.funcCompleted();
@@ -113,7 +113,7 @@
 								uploadQueue.add(func);
 							
 							} else {
-								setElementThumbnail($(this), thumbnailSrcToGenerate);
+								setElementThumbnail($(this), thumbnailSrcToGenerate, '/' + thumbnailSrcToGenerate);
 							}
 						}
 					}
@@ -156,10 +156,13 @@
 					url = node.data('url');
 				}
 
-				loadFunc(settings.dirToThumbnailFunction(url), function(filesDirs) {
-					thumbnails = thumbnails.concat(filesDirs.files);
-					thumbnailScroll();
-				});
+				var thumbnailDir = settings.dirToThumbnailFunction(url);
+				if (thumbnailDir) {
+					loadFunc(settings.dirToThumbnailFunction(url), function(filesDirs) {
+						thumbnails = thumbnails.concat(filesDirs.files);
+						thumbnailScroll();
+					});
+				}
 				
 				loadFunc(url, function(filesDirs) {
 					var nodes =	$.map(filesDirs.dirs, function(val) {
@@ -265,7 +268,7 @@
 		} else if ( typeof method === 'object' || ! method ) {
 		  return methods.init.apply( this, arguments );
 		} else {
-		  $.error( 'Method ' +  method + ' does not exist on jQuery.tooltip' );
+		  $.error( 'Method ' +  method + ' does not exist on jquery.s3dirtree' );
 		}
 	};
 	

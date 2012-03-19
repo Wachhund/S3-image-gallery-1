@@ -1,9 +1,9 @@
 <html>
 	<head>
 	<link href="style.css" rel="stylesheet" type="text/css" />
-	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" src="splitter.js"></script>
-	<script type="text/javascript" src="jstree/jquery.jstree.js"></script>
+	<script type="text/javascript" src="lib/jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="lib/splitter.js"></script>
+	<script type="text/javascript" src="lib/jstree/jquery.jstree.js"></script>
 	<script type="text/javascript" src="S3BucketLister.js"></script>
 	<script type="text/javascript" src="jquery.s3dirtree.js"></script>
 	<script type="text/javascript" src="FileUtils.js"></script>
@@ -12,6 +12,9 @@
 	<script type="text/javascript" src="S3Uploader.js"></script>
 	<script type="text/javascript" src="AsyncQueue.js"></script>
 	<script type="text/javascript" src="Settings.js"></script>
+	
+	<script type="text/javascript" src="DummyThumbnailGenerator.js"></script>
+	<script type="text/javascript" src="NullUploader.js"></script>
 		<script type="text/javascript">
 			jQuery(function($) {
 				var basePath = '';
@@ -26,13 +29,14 @@
                 }
 			
 				var thumbnailWidth=128, thumbnailHeight=128;
-				
-				var thumbnailGenerator = djiaak.S3ThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.settings.thumbnailPath);
+				var thumbnailGenerator = djiaak.S3ThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.settings.thumbnailPath, djiaak.ImageResizer().resizeImage);
 				var uploader = djiaak.S3Uploader(djiaak.settings.s3);
 				
+				//var thumbnailGenerator = djiaak.DummyThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.ImageResizer().resizeImage);
+				//var uploader = djiaak.NullUploader();
 				
 				$('#browser').s3dirtree({
-					dirLoadFunction: djiaak.S3BucketLister('https://dj-public.s3.amazonaws.com').listFilesDirs,
+					dirLoadFunction: djiaak.S3BucketLister(djiaak.settings.url).listFilesDirs,
 					basePath: basePath,
 					thumbnailWidth: thumbnailWidth,
 					thumbnailHeight: thumbnailHeight,
