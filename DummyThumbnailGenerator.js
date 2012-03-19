@@ -24,7 +24,9 @@
 			return _resizeFunc(img, _width, _height);
 		};
 		
-		var _generateThumbnailAsync = function(img, callback) {
+		var _generateThumbnailAsync = function(imageUrl, callback) {
+			var img = new Image();
+			img.src = imageUrl;
 			if (img.complete) {
 				callback(_generateThumbnail(img));
 			} else {

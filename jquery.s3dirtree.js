@@ -97,9 +97,7 @@
 							var thumbnailSrcToGenerate = settings.imageToThumbnailFunction(src);
 							if ($.inArray(thumbnailSrcToGenerate, thumbnails)===-1) {
 								var func = (function($element, imageUrl, thumbnailSrcToGenerate) { return function() {
-									var img = new Image();
-									img.src = imageUrl;
-									settings.generateThumbnailFunc(img, function(result) {
+									settings.generateThumbnailFunc(imageUrl, function(result) {
 										setElementThumbnail($element, thumbnailSrcToGenerate, result.dataUri);
 										settings.fileUploadFunc(result.blob, thumbnailSrcToGenerate, function() {
 											//success

@@ -27,7 +27,7 @@
 		};
 		
 		var _list = function(settings, callback) {
-			$.get(url, settings, function(result) {
+			$.get(_url, settings, function(result) {
           callback(_parseDirectoryListing(result));
       });
 		};

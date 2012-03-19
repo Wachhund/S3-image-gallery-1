@@ -15,35 +15,53 @@
 	
 	<script type="text/javascript" src="DummyThumbnailGenerator.js"></script>
 	<script type="text/javascript" src="NullUploader.js"></script>
+	<script type="text/javascript" src="StandardDirLister.js"></script>
+	
 		<script type="text/javascript">
 			jQuery(function($) {
 				var basePath = '';
-                var queryString = window.location.search.substring(0);
-                if (queryString.length>0 && queryString.charAt(0)=='?') {
-                        queryString.substring(1).split('&').forEach(function(val) {
-                                var kvp = val.split('=');
-                                if (kvp[0]==='path') {
-                                        basePath = kvp[1]; 
-                                }
-                        });
-                }
-			
+        var queryString = window.location.search.substring(0);
+        if (queryString.length>0 && queryString.charAt(0)=='?') {
+                queryString.substring(1).split('&').forEach(function(val) {
+                        var kvp = val.split('=');
+                        if (kvp[0]==='path') {
+                                basePath = kvp[1]; 
+                        }
+                });
+        }
+        
+        			
 				var thumbnailWidth=128, thumbnailHeight=128;
-				var thumbnailGenerator = djiaak.S3ThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.settings.thumbnailPath, djiaak.ImageResizer().resizeImage);
-				var uploader = djiaak.S3Uploader(djiaak.settings.s3);
+				//var thumbnailGenerator = djiaak.S3ThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.settings.thumbnailPath, djiaak.ImageResizer().resizeImage);
+				//var uploader = djiaak.S3Uploader(djiaak.settings.s3);
 				
-				//var thumbnailGenerator = djiaak.DummyThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.ImageResizer().resizeImage);
-				//var uploader = djiaak.NullUploader();
+				var thumbnailGenerator = djiaak.DummyThumbnailGenerator(thumbnailWidth, thumbnailHeight, djiaak.ImageResizer().resizeImage);
+				var uploader = djiaak.NullUploader();
+				
+				var setImage = function(url) {
+					$('#img').attr('src', url).hide();
+					$('#image').css('background-image', 'none');
+					switch ($('input[name="imageScale"]:checked').val()) {
+						case 'original':
+							$('#img').show();
+							break;
+						case 'contain':
+							$('#image').css('background-size', 'contain').css('background-image', "url('" + url + "')");
+							break;
+						case 'cover':
+							$('#image').css('background-size', 'cover').css('background-image', "url('" + url + "')");
+							break;
+					}
+				};
 				
 				$('#browser').s3dirtree({
-					dirLoadFunction: djiaak.S3BucketLister(djiaak.settings.url).listFilesDirs,
+					dirLoadFunction: djiaak.StandardDirLister(djiaak.settings.url).listFilesDirs,
 					basePath: basePath,
 					thumbnailWidth: thumbnailWidth,
 					thumbnailHeight: thumbnailHeight,
 					fileExtensions: [ '.gif', '.jpg', '.jpeg', '.png' ],
 					itemSelected: function($item) {
-						$('#img').attr('src', '')
-							.attr('src', $item.data('url'));
+						setImage($item.data('url'));
 					},
 					isThumbnailFunction: thumbnailGenerator.isThumbnail,
 					dirToThumbnailFunction: thumbnailGenerator.dirToThumbnailDir,
@@ -65,16 +83,22 @@
 				$('#image').resize(function() {
 					resize();
 				});
+				
 				$('.next-image').click(function() {
 					$('#browser').s3dirtree('nextImage');
 				});
 				$('.prev-image').click(function() {
 					$('#browser').s3dirtree('prevImage');
 				});
+				
 				$('.control').mouseover(function() {
-					$('.control').fadeTo(100,1.0);
+					$('.control').stop().fadeTo(100,1.0);
 				}).mouseout(function() {
-					$('.control').fadeTo(100,0.2);
+					$('.control').stop().fadeTo(100,0.2);
+				});
+				
+				$('input[name="imageScale"]').click(function() {
+					setImage($('img').attr('src'));
 				});
 			});
 			
@@ -87,6 +111,11 @@
 				<img id="img" />
 				<div class='control next-image'>&gt;</div>
 				<div class='control prev-image'>&lt;</div>
+				<div class='control image-scale'>
+					<input type="radio" name="imageScale" value="original" id="imageScale_original" checked /><label for="imageScale_original">original</label><br/>
+					<input type="radio" name="imageScale" value="contain" id="imageScale_contain" /><label for="imageScale_contain">contain</label><br/>
+					<input type="radio" name="imageScale" value="cover" id="imageScale_cover" /><label for="imageScale_cover">cover</label>
+				</div>
 			</div>
 		</div>
 	</body>
