@@ -219,8 +219,9 @@
 			
 			var scrollTimer;
 			var scrollFunc = function() {
-				if ($highlight && $highlight.length) {
-					$highlight.css(getHighlightLocation($el, getSelectedItem($el),	500));
+				var $selectedItem = getSelectedItem($el);
+				if ($highlight && $highlight.length && $selectedItem && $selectedItem.length) {
+					$highlight.css(getHighlightLocation($el, $selectedItem,	500));
 				}
 				if (scrollTimer) {
 					clearTimeout(scrollTimer);

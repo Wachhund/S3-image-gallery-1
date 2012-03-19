@@ -70,7 +70,15 @@
 				$('.control').mouseover(function() {
 					$('.control').fadeTo(100,1.0);
 				}).mouseout(function() {
-					$('.control').fadeTo(100,0.2);
+					$('.control').fadeTo(100,0.1);
+				});
+				
+				$(document).keydown(function(e) {
+					if (e.which===37) {
+						$('#browser').s3dirtree('prevImage');
+					} else if (e.which===39) {
+						$('#browser').s3dirtree('nextImage');
+					}
 				});
 			});
 			
