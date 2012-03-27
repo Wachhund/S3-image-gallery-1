@@ -5,8 +5,9 @@
 		var _parseDirectoryListing = function(html) {
 			var files = [];
 			var $html = $(html);
-			$html.find('a').each(function() {
-				files.push($(this).attr('href'));		
+			$html.find('a,A').each(function() {
+				var filename = $(this).attr('href') || $(this).attr('HREF');
+				files.push(djiaak.FileUtils.getFilename(filename));		
 			});
 			
 			return files;
@@ -27,7 +28,7 @@
 				};
 				for (var i=0; i<data.length; i++) {
 					var f = data[i];
-					if (f.charAt(0)!=='/') {
+					if (f!==djiaak.FileUtils.getFilename(djiaak.FileUtils.getParentDir(dir))) {
 						if (f.charAt(f.length-1)==='/') {
 							filesDirs.dirs.push(dir + f);
 						} else {

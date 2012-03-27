@@ -26,14 +26,15 @@
 		
 		var _generateThumbnailAsync = function(imageUrl, callback) {
 			var img = new Image();
-			img.src = imageUrl;
-			if (img.complete) {
+			
+			img.onload = function() {
 				callback(_generateThumbnail(img));
-			} else {
-				img.onload = function() {
-					callback(_generateThumbnail(img));
-				}
 			}
+			img.onerror = function() {
+				callback(null);
+			}
+			
+			img.src = imageUrl;
 		};
 		
 		return {
