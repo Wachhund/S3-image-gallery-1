@@ -78,7 +78,18 @@
 			var $el = $(this);
 			var $highlight;
 			var uploadQueue = djiaak.AsyncQueue();
-			var thumbnails=[];
+			var items=[];
+
+			var loadItemsFromPath(path, result) {
+				if (!items[path]) {
+					settings.dirLoadFunction(path, function(filesDirs) {
+						items[path] = filesDirs;
+						result(filesDirs);
+					});
+				} else {
+					result(items[path]);
+				}
+			};
 
 			var setElementThumbnail = function($el, thumbnailSrc, url) {
 				$el.data('thumbnailSrc', thumbnailSrc || 'none');
@@ -113,6 +124,17 @@
 				return null;
 			};
 			
+			var isThumbnailCached = function(thumbnailSrc) {
+				for(var key in items) {
+					if (items.hasOwnProperty(key)) {
+						if ($.inArray(thumbnailSrc, items)!==-1) {
+							return true;
+						}
+					}
+				}
+				return false;
+			};
+			
 			var thumbnailScroll = function() {
 				uploadQueue.stop();
 				uploadQueue.clear();
@@ -123,7 +145,7 @@
 							var src = $(this).data('src');
 							var imageUrl = $(this).data('url');
 							var thumbnailSrcToGenerate = settings.imageToThumbnailFunction(src);
-							if ($.inArray(thumbnailSrcToGenerate, thumbnails)===-1) {
+							if (!isThumbnailCached(thumbnailSrcToGenerate)) {
 								var func = (function($element, imageUrl, thumbnailSrcToGenerate) { return function() {
 									settings.generateThumbnailFunc(imageUrl, function(result) {
 										setElementThumbnail($element, thumbnailSrcToGenerate, result.dataUri);
@@ -146,59 +168,53 @@
 				});
 				
 				$el.find('.preview').each(function() {
-					
 					if (elementInViewport(this)) { //check if element in viewport
 						var thumbnailSrc = $(this).data('thumbnailSrc'); 
 						if (!thumbnailSrc) { //check if preview already loaded
 							var src = $(this).data('src'); //get image path
 							var thumbnailPath = settings.dirToThumbnailFunction(src); //thumbnail path
-							var thumbnailImageSrc = getThumbnailImageForPath(thumbnailPath); //see if a thumbnail image is already in array (unlikely)
-							if (thumbnailImageSrc) {
-								setElementThumbnail($(this), thumbnailImageSrc, '/' + thumbnailImageSrc);
-							} else {
-								//no thumbnail found in array
-								var func = (function($element, thumbnailPath, imagePath) { return function() {
-									
-									var thumbnailLoadResult = function(thumbFilesDirs) {
-										var foundThumbnailSrc = findThumbnail(thumbFilesDirs.files);
-										if (foundThumbnailSrc) {
-											//thumbnail exists; display it
-											setElementThumbnail($element, foundThumbnailSrc, '/' + foundThumbnailSrc);
-											uploadQueue.funcCompleted();
-										} else {
-											//thumbnail doesn't exist; generate it
-											settings.dirLoadFunction(imagePath, function(imageFilesDirs) { //first load all images for path
-												var foundImageSrc = findImage(imageFilesDirs.files); //find (random) image
-												if (foundImageSrc) { //image found
-													var thumbnailSrcToGenerate = settings.imageToThumbnailFunction(foundImageSrc);
-													settings.generateThumbnailFunc('/' + foundImageSrc, function(result) { //generate thumbnail for found image
-														setElementThumbnail($element, thumbnailSrcToGenerate, result.dataUri); //set image src to thumbnail data uri
-														settings.fileUploadFunc(result.blob, thumbnailSrcToGenerate, function() { //try to upload thumbnail image
-															//success
-															uploadQueue.funcCompleted();
-														}, function() {
-															//failure
-															uploadQueue.funcCompleted();
-														});
-													});
-												} else { //no image found; nothing to do (path doesn't contain images)
-													setElementThumbnail($element, null, null);
-													uploadQueue.funcCompleted();
-												}
-											});
-										}	
-									};
+							
+							var func = (function($element, thumbnailPath, imagePath) { return function() {
 								
-									if (thumbnailPath) {
-										settings.dirLoadFunction(thumbnailPath, thumbnailLoadResult); //get directory listing of thumbnail path
+								var thumbnailLoadResult = function(thumbFilesDirs) {
+									var foundThumbnailSrc = findThumbnail(thumbFilesDirs.files);
+									if (foundThumbnailSrc) {
+										//thumbnail exists; display it
+										setElementThumbnail($element, foundThumbnailSrc, '/' + foundThumbnailSrc);
+										uploadQueue.funcCompleted();
 									} else {
-										thumbnailLoadResult({ files: [], dirs: [] }); //valid thumbnail path not found
-									}
-									
-								}})($(this), thumbnailPath, src);
+										//thumbnail doesn't exist; generate it
+										loadItemsFromPath(imagePath, function(imageFilesDirs) { //first load all images for path
+											var foundImageSrc = findImage(imageFilesDirs.files); //find (random) image
+											if (foundImageSrc) { //image found
+												var thumbnailSrcToGenerate = settings.imageToThumbnailFunction(foundImageSrc);
+												settings.generateThumbnailFunc('/' + foundImageSrc, function(result) { //generate thumbnail for found image
+													setElementThumbnail($element, thumbnailSrcToGenerate, result.dataUri); //set image src to thumbnail data uri
+													settings.fileUploadFunc(result.blob, thumbnailSrcToGenerate, function() { //try to upload thumbnail image
+														//success
+														uploadQueue.funcCompleted();
+													}, function() {
+														//failure
+														uploadQueue.funcCompleted();
+													});
+												});
+											} else { //no image found; nothing to do (path doesn't contain images)
+												setElementThumbnail($element, null, null);
+												uploadQueue.funcCompleted();
+											}
+										});
+									}	
+								};
+							
+								if (thumbnailPath) {
+									loadItemsFromPath(thumbnailPath, thumbnailLoadResult); //get directory listing of thumbnail path
+								} else {
+									thumbnailLoadResult({ files: [], dirs: [] }); //valid thumbnail path not found
+								}
 								
-								uploadQueue.add(func);
-							}
+							}})($(this), thumbnailPath, src);
+							
+							uploadQueue.add(func);						
 						}
 					}
 				});
@@ -243,7 +259,7 @@
 				return null;
 			};
 
-			var loadData = function(node, loadFunc, basePath, callback) {
+			var loadData = function(node, basePath, callback) {
 				var url, isRootNode = node===-1;
 				if (isRootNode) { 
 					url = basePath;
@@ -253,13 +269,12 @@
 
 				var thumbnailDir = settings.dirToThumbnailFunction(url);
 				if (thumbnailDir) {
-					loadFunc(thumbnailDir, function(filesDirs) {
-						thumbnails = thumbnails.concat(filesDirs.files);
+					loadItemsFromPath(thumbnailDir, function(filesDirs) {
 						thumbnailScroll();
 					});
 				}
 				
-				loadFunc(url, function(filesDirs) {
+				loadItemsFromPath(url, function(filesDirs) {
 					var nodes =	$.map(filesDirs.dirs, function(val) {
 						if (settings.isThumbnailFunction(val)) { return null; }
 						
@@ -305,7 +320,7 @@
 				},
 				"json_data": {
 					"data" : function(node,callback) { 
-						loadData(node, settings.dirLoadFunction, settings.basePath, callback); 
+						loadData(node, settings.basePath, callback); 
 					}
 				},
 				"themes" : {
